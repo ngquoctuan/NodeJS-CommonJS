@@ -33,7 +33,7 @@ const authController = {
       admin: user.admin,
     },
       process.env.secretKey,
-      { expiresIn: "1m" }
+      { expiresIn: "7d" }
     );
   },
 
@@ -97,7 +97,7 @@ const authController = {
 
 
 
-      //CREATE NEW ACCESSTOKEN, REFRESH TOKEN
+      //CREATE NEW ACCESS TOKEN, REFRESH TOKEN
       const newAccessToken = authController.generateAccessToken(user);
 
       const newRefreshToken = authController.generateRefreshToken(user);
@@ -112,6 +112,14 @@ const authController = {
       res.status(200).json({ accessToken: newAccessToken });
     });
     //refreshToken: newRefreshToken 
+  },
+
+  //LOG OUT
+  userLogout: async (req, res) => {
+    res.clearCookie("refreshToken");
+    refreshTokens = refreshTokens.filter(token => token != req.cookies.refreshToken);
+    res.status(200).json("Log out Successfully");
+
   }
 }
 
