@@ -4,7 +4,7 @@ const userController = {
     //GET ALL USERS
     getAllUsers: async (req, res) => {
         try {
-            const user = await User.find({},{password:0});
+            const user = await User.find({}, { password: 0 });
             res.status(200).json(user);
 
         } catch (err) {

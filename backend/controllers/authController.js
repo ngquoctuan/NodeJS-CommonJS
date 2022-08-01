@@ -43,7 +43,7 @@ const authController = {
       id: user.id,
       admin: user.admin,
     },
-      process.env.alternatveSecretKey,
+      process.env.alternativeSecretKey,
       { expiresIn: "365d" }
     );
   },
@@ -79,24 +79,19 @@ const authController = {
     }
   },
 
-
-
   reqRefreshToken: async (req, res) => {
     // TAKE REFRESH TOKEN FROM USER 
     const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) return res.status(401).json("You're now authentificated!");
+    //Send error if token is not valid
+    if (!refreshToken) return res.status(401).json("You're not authenticated!");
     if (!refreshTokens.includes(refreshToken)) {
-      return res.status(403).json("Refresh token is now valid");
+      return res.status(403).json("Refresh token is not valid");
     }
-    jwt.verify(refreshToken, process.env.alternatveSecretKey, (err, user) => {
+    jwt.verify(refreshToken, process.env.alternativeSecretKey, (err, user) => {
       if (err) {
         console.log(err);
       }
-
-      refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
-
-
-
+    refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
       //CREATE NEW ACCESS TOKEN, REFRESH TOKEN
       const newAccessToken = authController.generateAccessToken(user);
 
@@ -122,7 +117,5 @@ const authController = {
 
   }
 }
-
-//STORE 
 
 module.exports = authController;
