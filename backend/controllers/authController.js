@@ -5,9 +5,27 @@ const jwt = require("jsonwebtoken");
 let refreshTokens = [];
 
 const authController = {
-  //REGISTER
+
+  //HASHING PASSWORD
+  securePassword: async (password) => {
+      try{
+        const salt = await bcrypt.genSalt(10);
+        const passwordHashed = await bcrypt.hash(password, salt);
+        return passwordHashed;
+      } catch(err){
+        res.status(403).send(err.message);
+      }
+      
+  },
+  // REGISTER
   registerUser: async (req, res) => {
     try {
+      const doesExitUsername = await User.findOne({ username: req.body.username });
+      if (doesExitUsername)
+        throw res.status(400).json(' username has already been registered ');
+      const doesExitEmail = await User.findOne({ email: req.body.email });
+      if (doesExitEmail)
+        throw res.status(400).json(' email has already been registered ');
       const salt = await bcrypt.genSalt(10);
       const hashed = await bcrypt.hash(req.body.password, salt);
 
@@ -17,7 +35,6 @@ const authController = {
         email: req.body.email,
         password: hashed,
       });
-
       //Save user to DB
       const user = await newUser.save();
       res.status(200).json(user);
@@ -30,6 +47,7 @@ const authController = {
   generateAccessToken: (user) => {
     return jwt.sign({
       id: user.id,
+      email: user.email,
       admin: user.admin,
     },
       process.env.secretKey,
@@ -79,6 +97,7 @@ const authController = {
     }
   },
 
+  //REFRESH TOKEN FROM TOKEN SAVED IN COOKIES
   reqRefreshToken: async (req, res) => {
     // TAKE REFRESH TOKEN FROM USER 
     const refreshToken = req.cookies.refreshToken;
@@ -91,7 +110,7 @@ const authController = {
       if (err) {
         console.log(err);
       }
-    refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
+      refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
       //CREATE NEW ACCESS TOKEN, REFRESH TOKEN
       const newAccessToken = authController.generateAccessToken(user);
 
@@ -116,6 +135,7 @@ const authController = {
     res.status(200).json("Log out Successfully");
 
   }
+
 }
 
 module.exports = authController;

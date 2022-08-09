@@ -1,4 +1,6 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const authSchema = require("./userValidate");
 const middlewareController = {
 
     //VERIFY TOKEN
@@ -27,6 +29,14 @@ const middlewareController = {
                 res.status(403).json("You're not allowed to delete others");
             }
         });
+    },
+    validateInputUserAPI: async (req, res, next) => {
+        try {
+            const result = await authSchema.validateAsync(req.body);
+            next();
+        } catch (error) {
+            return res.status(400).json({ message: error.message });
+        }
     }
 }
 
