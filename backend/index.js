@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 //import mongodbb from ('mongodb');
 const mongoose = require('mongoose');
 const cookieParser = require("cookie-parser");
-const authRoute = require("./routes/auth");
+const UserRoute = require("./routes/User");
 dotenv.config();
 
 mongoose.connect(process.env.MONGODB_URL)
@@ -17,7 +17,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 //ROUTES
-app.use("/v1/auth", authRoute);
+app.use("/v1/auth", UserRoute);
 
 app.listen(process.env.PORT || 8000, () => {
   console.log("Server is running on PORT " + process.env.PORT);

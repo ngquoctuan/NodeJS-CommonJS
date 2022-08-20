@@ -1,20 +1,25 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
 const authSchema = require("./userValidate");
+const fs = require("fs");
+const publicKey = fs.readFileSync('./public.key', 'utf8');
+
 const middlewareController = {
 
     //VERIFY TOKEN
     verifyToken: (req, res, next) => {
-        const token = req.headers.token;
-        if (token) {
-            const accessToken = token.split(" ")[1];
-            jwt.verify(accessToken, process.env.secretKey, (err, user) => {
+        const tokenTemp = req.headers.token;
+        
+        if (tokenTemp) {
+             const token = tokenTemp.split(" ")[1];
+            //  console.log(token);
+            jwt.verify(token, publicKey, { algorithm: "RS256" }, (err, user) => {
                 if (err) {
                     res.status(403).json("Token is not valid");
                 }
-                req.user = user;
-                next();
-            });
+                    req.user = user;
+                    next();
+                }
+            )
         }
         else {
             res.status(401).json("You're not authenticated");
@@ -35,7 +40,12 @@ const middlewareController = {
             const result = await authSchema.validateAsync(req.body);
             next();
         } catch (error) {
-            return res.status(400).json({ message: error.message });
+            const str = error.message;
+            if (str.includes('username'))
+                return res.status(400).json("username length must be at least 3 characters long");
+            else
+                return res.status(400).json("email must be a valid email");
+            // return res.status(400).json({message: error.message});
         }
     }
 }

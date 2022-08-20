@@ -27,8 +27,10 @@ const userSchema = new mongoose.Schema(
     token: {
       type: String,
       default: ''
+    },
+    avatar: {
+      type: Buffer //vung luu tru du lieu tam thoi thuong duoc luu tru trong bo nho Ram
     }
-
   },
   { timestamps: true }
 );

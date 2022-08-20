@@ -1,9 +1,9 @@
-const User = require('../models/User');
+const User = require('../models/user');
 const randomString = require('randomstring');
 
 const config = require('../config/config');
 const nodemailer = require('nodemailer');
-const authController = require('./authController');
+const authController = require('../middlewarecontroller/authController');
 
 const userController = {
     //GET ALL USERS
@@ -23,7 +23,7 @@ const userController = {
             const user = await User.findById(req.params.id);
             res.status(200).json("Delete Successfully!");
         } catch (err) {
-            res.status(500).json(err);
+            res.status(500).json("CAUSED ERROR");
         }
     },
 
@@ -71,7 +71,7 @@ const userController = {
                     res.status(200).json("This email does not exist.");
                 }
             } catch (err) {
-                res.status(401).json("Error");
+                res.status(401).json("CAUSED ERROR");
             }
 
         }
@@ -112,7 +112,7 @@ const userController = {
 
 
         } catch (err) {
-            res.status(400).json({ message: error.message });
+            res.status(400).json("CAUSED ERROR");
         };
     },
 
@@ -125,13 +125,42 @@ const userController = {
                 const password = req.body.password;
                 const newPassword = await authController.securePassword(password);
                 const userData = await User.findByIdAndUpdate({ _id: tokenData._id }, { $set: { password: newPassword, token: '' } }, { new: true });
-                res.status(200).send({success:true, message:"User Password has been reset successfully!", data: userData});
+                res.status(200).send({ success: true, message: "User Password has been reset successfully!", data: userData });
             }
             else {
                 res.status(200).json("The link has been expired");
             }
         } catch (err) {
-            res.status(400).json({ message: err.message });
+            res.status(400).json("CAUSED ERROR");
+        }
+    },
+
+    //CREATE AVATAR USER
+    createAvatar: async (req, res) => {
+        const buffer = await sharp(req.file.buffer).resize({ width: 200, height: 200 }).png().toBuffer()
+        req.user.avatar = buffer
+        await req.user.save()
+        res.send('Add a avatar successful !')
+    },
+
+    //DELETE AVATAR USER
+    deleteAvatar: async (req, res) => {
+        req.user.avatar = undefined
+        await req.user.save()
+        res.send('Delete successful !')
+    },
+
+    //GET AVATAR USER
+    getAvatar: async (req, res) => {
+        try {
+            const user = await User.findById(req.params.id)
+            if (!user || !user.avatar) {
+                throw new Error('Failed')
+            }
+            res.set('Content-Type', 'image/png')
+            res.send(user.avatar)
+        } catch (error) {
+            res.status(404).send({ success: false, msg: error.message })
         }
     }
 }

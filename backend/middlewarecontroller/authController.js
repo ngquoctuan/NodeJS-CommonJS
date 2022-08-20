@@ -1,6 +1,8 @@
-const User = require("../models/User");
+const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require('fs');
+const privateKey = fs.readFileSync('./private.key', 'utf8');
 
 let refreshTokens = [];
 
@@ -8,24 +10,24 @@ const authController = {
 
   //HASHING PASSWORD
   securePassword: async (password) => {
-      try{
-        const salt = await bcrypt.genSalt(10);
-        const passwordHashed = await bcrypt.hash(password, salt);
-        return passwordHashed;
-      } catch(err){
-        res.status(403).send(err.message);
-      }
-      
+    try {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHashed = await bcrypt.hash(password, salt);
+      return passwordHashed;
+    } catch (err) {
+      res.status(403).send(err.message);
+    }
+
   },
   // REGISTER
   registerUser: async (req, res) => {
     try {
       const doesExitUsername = await User.findOne({ username: req.body.username });
       if (doesExitUsername)
-        throw res.status(400).json(' username has already been registered ');
+        throw res.status(400).json('username has already been registered');
       const doesExitEmail = await User.findOne({ email: req.body.email });
       if (doesExitEmail)
-        throw res.status(400).json(' email has already been registered ');
+        throw res.status(400).json('email has already been registered');
       const salt = await bcrypt.genSalt(10);
       const hashed = await bcrypt.hash(req.body.password, salt);
 
@@ -50,8 +52,8 @@ const authController = {
       email: user.email,
       admin: user.admin,
     },
-      process.env.secretKey,
-      { expiresIn: "7d" }
+      privateKey,
+      { expiresIn: "30m", algorithm: "RS256" }
     );
   },
 
@@ -61,8 +63,8 @@ const authController = {
       id: user.id,
       admin: user.admin,
     },
-      process.env.alternativeSecretKey,
-      { expiresIn: "365d" }
+      privateKey,
+      { expiresIn: "365d", algorithm: "RS256" }
     );
   },
   //LOGIN
@@ -93,7 +95,7 @@ const authController = {
         res.status(200).json({ ...others, accessToken });
       }
     } catch (err) {
-      res.status(500).json(err);
+      res.status(500).json("CAUSED ERROR");
     }
   },
 
@@ -108,7 +110,7 @@ const authController = {
     }
     jwt.verify(refreshToken, process.env.alternativeSecretKey, (err, user) => {
       if (err) {
-        console.log(err);
+        console.log("ERROR JSON VERIFYING");
       }
       refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
       //CREATE NEW ACCESS TOKEN, REFRESH TOKEN
@@ -134,7 +136,17 @@ const authController = {
     refreshTokens = refreshTokens.filter(token => token != req.cookies.refreshToken);
     res.status(200).json("Log out Successfully");
 
-  }
+  },
+  // JWTverify(token , publicKey, {algorithm: "RS256"}, (err,user) => {
+  //   if(err){
+  //     res.status(403).json("Token is not valid");
+  //     req.user = user;
+  //     next();
+  //   }
+  //   else {
+  //     res.status(401).json("You're not authenticated");
+  //   }
+  // })
 
 }
 
