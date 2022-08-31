@@ -4,6 +4,8 @@ const uploadFile = require("../middlewarecontroller/uploadFile");
 const userController = require("../controllers/userController");
 const router = require("express").Router();
 const feature = require("../middlewarecontroller/features");
+const user = require("../models/user");
+const sharp = require("sharp");
 
 //REGISTER
 router.post("/register", middlewareController.validateInputUserAPI, authController.registerUser);
@@ -32,9 +34,15 @@ router.post('/forget', userController.forgetPassword);
 //RESET PASSWORD
 router.post("/reset", userController.resetPasswordAPI);
 
-//CREATE AVATAR USER
-router.post("/avatar", middlewareController.verifyToken, uploadFile.single("Avatar"), userController.createAvatar);
+//UPLOAD SINGLE FILE
+router.post("/single", uploadFile.single("image"), userController.uploadSingleFile);
 
+//UPLOAD MULTIPLE FILE
+router.post('/multiple', uploadFile.array('images', 3), userController.uploadMultipleFiles);
+
+//CREATE AVATAR USER
+router.post('/create', middlewareController.verifyToken, uploadFile.single('image'), userController.createAvatar);
+// router.post('/create', middlewareController.verifyToken, uploadFile.single('image'));
 //GET AVATAR USER
 router.get("/avatar/:id", middlewareController.verifyToken, userController.getAvatar);
 

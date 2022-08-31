@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
       default: ''
     },
     avatar: {
-      type: Buffer //vung luu tru du lieu tam thoi thuong duoc luu tru trong bo nho Ram
+      type: Buffer, //vung luu tru du lieu tam thoi thuong duoc luu tru trong bo nho Ram
     }
   },
   { timestamps: true }

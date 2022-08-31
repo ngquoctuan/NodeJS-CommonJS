@@ -25,7 +25,7 @@ const middlewareController = {
             res.status(401).json("You're not authenticated");
         }
     },
-    verifyTokenAndAdminAuth: (req, res, next) => {
+    verifyTokenAndAdminAuth: async (req, res, next) => {
         middlewareController.verifyToken(req, res, () => {
             if (req.user.id == req.params.id || req.user.admin) {
                 next();

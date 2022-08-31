@@ -3,7 +3,11 @@ const randomString = require('randomstring');
 
 const config = require('../config/config');
 const nodemailer = require('nodemailer');
-const authController = require('../middlewarecontroller/authController');
+const authController = require('../middlewareController/authController');
+const sharp = require('sharp');
+const out = require('../logMess/outMess');
+const user = require('../models/user');
+
 
 const userController = {
     //GET ALL USERS
@@ -14,6 +18,7 @@ const userController = {
 
         } catch (err) {
             res.status(500).js(err);
+            // console.log(err);
         }
     },
 
@@ -135,19 +140,30 @@ const userController = {
         }
     },
 
+    uploadSingleFile: async (req, res) => {
+        console.log(req.file);
+        res.status(200).json('Single file upload successfully');
+        //outSuc(res,"Single file upload successfully");
+        //out.Suc(res, "Single file upload successfully");
+    },
+    uploadMultipleFiles: async (req, res) => {
+        console.log(req.files);
+        res.status(200).json('Multiple files upload successfully');
+    },
     //CREATE AVATAR USER
     createAvatar: async (req, res) => {
-        const buffer = await sharp(req.file.buffer).resize({ width: 200, height: 200 }).png().toBuffer()
-        req.user.avatar = buffer
-        await req.user.save()
-        res.send('Add a avatar successful !')
+        // const buffer = await sharp(req.file.buffer).resize({ width: 200, height: 200 }).png().toBuffer();
+        console.log(req.file);
+        req.user.avatar = req.file.buffer;
+        await User(req.user).save(function () { });
+        res.status(200).json('Add a avatar successfully !')
     },
 
     //DELETE AVATAR USER
     deleteAvatar: async (req, res) => {
         req.user.avatar = undefined
-        await req.user.save()
-        res.send('Delete successful !')
+        await  await User(req.user).save(function () { });
+        res.status(200).json('Delete successfully !')
     },
 
     //GET AVATAR USER
@@ -158,9 +174,9 @@ const userController = {
                 throw new Error('Failed')
             }
             res.set('Content-Type', 'image/png')
-            res.send(user.avatar)
+            res.status(200).json(user.avatar)
         } catch (error) {
-            res.status(404).send({ success: false, msg: error.message })
+            res.status(404).json({ success: false, msg: error.message })
         }
     }
 }
